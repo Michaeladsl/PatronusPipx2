@@ -65,8 +65,8 @@ def main():
     parser.add_argument('-w', '--word', help="Specify a custom word to redact.")
     args = parser.parse_args()
 
-    script_dir = os.path.dirname(os.path.realpath(__file__))
-    redacted_dir = os.path.join(script_dir, "static", "redacted_full")
+    PATRONUS_BASE_DIR = os.path.expanduser('~/.local/.patronus')
+    redacted_dir = os.path.join(PATRONUS_BASE_DIR, "static", "redacted_full")
 
     if args.file:
         input_file_path = args.file
@@ -74,7 +74,7 @@ def main():
         os.makedirs(os.path.dirname(output_file_path), exist_ok=True)
         process_cast_file(input_file_path, output_file_path, args.word, force=True)
     else:
-        full_dir = os.path.join(script_dir, "static", "full")
+        full_dir = os.path.join(PATRONUS_BASE_DIR, "static", "full")
         for root, dirs, files in os.walk(full_dir):
             for file in files:
                 if file.endswith('.cast'):
