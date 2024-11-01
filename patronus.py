@@ -56,7 +56,7 @@ def setup_directories():
             os.makedirs(subdir_path)
             print(f"Created directory: {subdir_path}")
 
-    static_src_dir = os.path.join(sys.prefix, 'static')
+    static_src_dir = os.path.expanduser('~/.local/share/pipx/venvs/patronus/static')
     static_dest_dir = os.path.join(PATRONUS_BASE_DIR, 'static')
 
     if os.path.exists(static_src_dir):
@@ -67,6 +67,7 @@ def setup_directories():
             print(f"Static directory already exists at {static_dest_dir}")
     else:
         print(f"Static source directory not found at {static_src_dir}")
+
 
 
 def remove_gitkeep_files():
