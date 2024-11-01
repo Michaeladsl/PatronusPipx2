@@ -22,18 +22,18 @@ setup(
     include_package_data=True, 
     entry_points={
         'console_scripts': [
-            'patronus=patronus:main',         
-            'patronus-edit=edit:main',         
-            'patronus-redact=redact:main',
-            'patronus-split=split:main',
-            'patronus-server=server:main',
+            'edit=edit:main',
+            'patronus=patronus:main',
+            'redact=redact:main',
+            'server=server:main',
+            'split=split:main',
         ],
     },
     package_data={
         '': ['configure.sh'],
     },
     data_files=[
-        ('', ['configure.sh']),  
-        ('static', gather_static_files()),  
+        ('', ['configure.sh']), 
+        ('static', gather_static_files()),
     ],
 )

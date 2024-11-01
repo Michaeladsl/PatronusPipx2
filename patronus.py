@@ -3,10 +3,6 @@ import subprocess
 import os
 import sys
 import shutil
-from edit import main as edit_main
-from redact import main as redact_main
-from split import main as split_main
-from server import main as server_main
 
 PATRONUS_BASE_DIR = os.path.expanduser('~/.local/.patronus')
 
@@ -85,42 +81,30 @@ def nuke_directories():
         print(f"Nuked all contents from {full_path}")
 
 def main():
-    parser = argparse.ArgumentParser(description="Patronus: A central command script for managing utilities.")
-    parser.add_argument('mode', nargs='?', choices=['on', 'off'], help='Mode for running configuration.sh.')
+    parser = argparse.ArgumentParser(description="Patronus: A central command script for running multiple utility scripts.")
+    parser.add_argument('mode', nargs='?', choices=['on', 'off'], help='Mode for running configuration.sh. Use "on" to run configuration.sh or "off" to run configuration.sh --undo.')
     parser.add_argument('--nuke', action='store_true', help='Erase all contents from the static directories')
+    args = parser.parse_args()
 
-    args, unknown = parser.parse_known_args()
+    setup_directories()
 
     if args.mode:
         if args.mode == 'on':
             run_script('configure.sh', [])
-            return
         elif args.mode == 'off':
             run_script('configure.sh', ['--undo'])
-            return
+        return
 
     if args.nuke:
         nuke_directories()
-        return
+        return 
 
-    if len(unknown) < 1:
-        print("Usage: patronus <command> [options]")
-        sys.exit(1)
-
-    command = unknown[0]
-    sys.argv = [sys.argv[0]] + unknown  
-    if command == "edit":
-        edit_main()
-    elif command == "redact":
-        redact_main()
-    elif command == "split":
-        split_main()
-    elif command == "server":
-        server_main()
-    else:
-        print(f"Unknown command: {command}")
-        print("Available commands: on, off, --nuke, edit, redact, split, server")
-        sys.exit(1)
+    remove_gitkeep_files()
+    start_flask_server_in_tmux()
+    print("Server Started: http://127.0.0.1:8005")
+    scripts_to_run = ['redact.py', 'split.py', 'edit.py']
+    for script in scripts_to_run:
+        run_script(script, [])
 
 if __name__ == "__main__":
     main()
