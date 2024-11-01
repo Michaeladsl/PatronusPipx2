@@ -7,6 +7,7 @@ import json
 import re
 import pyte
 from tqdm import tqdm
+import sys
 
 home_dir = os.path.expanduser("~")
 patronus_base_dir = os.path.join(home_dir, ".local", ".patronus")
