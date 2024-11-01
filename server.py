@@ -727,7 +727,7 @@ COMMAND_TEMPLATE = '''
                 
                 var timestamp = new Date().getTime();
                 
-                AsciinemaPlayer.create('.patronus/static/splits/' + filename + '?_=' + timestamp, player);
+                AsciinemaPlayer.create('/.patronus/static/splits/' + filename + '?_=' + timestamp, player);
             }
         }
 
@@ -738,7 +738,7 @@ COMMAND_TEMPLATE = '''
                 const player = document.getElementById('demo-' + openFile);
                 if (player) {
                     player.style.display = 'block';
-                    AsciinemaPlayer.create('.patronus/static/splits/' + openFile + '?_=' + new Date().getTime(), player);
+                    AsciinemaPlayer.create('/.patronus/static/splits/' + openFile + '?_=' + new Date().getTime(), player);
                 }
             }
         };
@@ -1013,7 +1013,7 @@ COMMAND_TEMPLATE = '''
                     setTimeout(() => {
                         playerContainer.style.display = 'block';
                         // Update the path to reference the new directory structure
-                        AsciinemaPlayer.create('~/.local/.patronus/static/splits/' + filename + '?_=' + timestamp, playerContainer);
+                        AsciinemaPlayer.create('/.patronus/static/splits/' + filename + '?_=' + timestamp, playerContainer);
                     }, 1000);
                 }
             }).catch(error => {
@@ -1049,4 +1049,4 @@ COMMAND_TEMPLATE = '''
 </html>
 '''
 if __name__ == '__main__':
-    app.run(host='127.0.0.1', port=8005, debug=True)
+    app.run(host='127.0.0.1', port=8005, debug=False)
