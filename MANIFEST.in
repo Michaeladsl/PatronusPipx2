@@ -1,0 +1,2 @@
+include configure.sh
+recursive-include static *
