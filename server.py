@@ -727,7 +727,7 @@ COMMAND_TEMPLATE = '''
                 
                 var timestamp = new Date().getTime();
                 
-                AsciinemaPlayer.create('/.patronus/static/splits/' + filename + '?_=' + timestamp, player);
+                AsciinemaPlayer.create('/static/splits/' + filename + '?_=' + timestamp, player);
             }
         }
 
@@ -738,7 +738,7 @@ COMMAND_TEMPLATE = '''
                 const player = document.getElementById('demo-' + openFile);
                 if (player) {
                     player.style.display = 'block';
-                    AsciinemaPlayer.create('/.patronus/static/splits/' + openFile + '?_=' + new Date().getTime(), player);
+                    AsciinemaPlayer.create('/static/splits/' + openFile + '?_=' + new Date().getTime(), player);
                 }
             }
         };
