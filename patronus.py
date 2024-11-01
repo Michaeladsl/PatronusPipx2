@@ -61,12 +61,22 @@ def setup_directories():
 
     if os.path.exists(static_src_dir):
         if not os.path.exists(static_dest_dir):
-            shutil.copytree(static_src_dir, static_dest_dir)
-            print(f"Copied static files from {static_src_dir} to {static_dest_dir}")
-        else:
-            print(f"Static directory already exists at {static_dest_dir}")
+            os.makedirs(static_dest_dir)
+            print(f"Created destination static directory at {static_dest_dir}")
+
+        for item in os.listdir(static_src_dir):
+            src_item_path = os.path.join(static_src_dir, item)
+            dest_item_path = os.path.join(static_dest_dir, item)
+            if os.path.isdir(src_item_path):
+                shutil.copytree(src_item_path, dest_item_path, dirs_exist_ok=True)
+            else:
+                shutil.copy2(src_item_path, dest_item_path)
+            print(f"Copied {src_item_path} to {dest_item_path}")
+
+        print(f"Copied all static files from {static_src_dir} to {static_dest_dir}")
     else:
         print(f"Static source directory not found at {static_src_dir}")
+
 
 
 
