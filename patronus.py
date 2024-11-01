@@ -14,14 +14,17 @@ def find_script_path(script_name):
     """Finds the path of the script within the pipx environment."""
     venv_root = sys.prefix
     script_path_main = os.path.join(venv_root, '..', script_name)  
-    script_path_site = os.path.join(venv_root, 'lib', 'python3.12', 'site-packages', script_name)
+    script_path_venv_root = os.path.join(venv_root, script_name)  
+    script_path_site = os.path.join(venv_root, 'lib', 'python3.12', 'site-packages', script_name) 
 
     if os.path.exists(script_path_main):
         return script_path_main
+    elif os.path.exists(script_path_venv_root):
+        return script_path_venv_root
     elif os.path.exists(script_path_site):
         return script_path_site
     else:
-        raise FileNotFoundError(f"Script not found in {script_path_main} or {script_path_site}")
+        raise FileNotFoundError(f"Script not found in {script_path_main}, {script_path_venv_root}, or {script_path_site}")
 
 def start_flask_server_in_tmux():
     flask_script_path = find_script_path('server.py')
