@@ -10,7 +10,7 @@ mkdir -p "${STATIC_DIR}/full"
 mkdir -p "${STATIC_DIR}/redacted_full"
 mkdir -p "${STATIC_DIR}/splits"
 
-echo -e "${GREEN}Created the following directories:${RESET}"
+echo -e "${GREEN}Verified and created necessary directories:${RESET}"
 echo "${STATIC_DIR}/full"
 echo "${STATIC_DIR}/redacted_full"
 echo "${STATIC_DIR}/splits"

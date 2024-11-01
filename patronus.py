@@ -13,9 +13,9 @@ def make_script_executable(script_path):
 def find_script_path(script_name):
     """Finds the path of the script within the pipx environment."""
     venv_root = sys.prefix
-    script_path_main = os.path.join(venv_root, '..', script_name)  
+    script_path_main = os.path.join(venv_root, '..', script_name) 
     script_path_venv_root = os.path.join(venv_root, script_name)  
-    script_path_site = os.path.join(venv_root, 'lib', 'python3.12', 'site-packages', script_name) 
+    script_path_site = os.path.join(venv_root, 'lib', 'python3.12', 'site-packages', script_name)  
 
     if os.path.exists(script_path_main):
         return script_path_main
