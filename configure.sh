@@ -3,11 +3,23 @@
 GREEN='\033[92m'
 RESET='\033[0m'
 
-PATRONUS_DIR="$HOME/.local/.patronus"
-STATIC_SRC_DIR="$HOME/.local/share/pipx/venvs/patronus/static"
+BASE_DIR="$HOME/.local/.patronus"
+STATIC_DIR="${BASE_DIR}/static"
+
+mkdir -p "${STATIC_DIR}/full"
+mkdir -p "${STATIC_DIR}/redacted_full"
+mkdir -p "${STATIC_DIR}/splits"
+
+echo -e "${GREEN}Created the following directories:${RESET}"
+echo "${STATIC_DIR}/full"
+echo "${STATIC_DIR}/redacted_full"
+echo "${STATIC_DIR}/splits"
+
+RECORD_CMD="asciinema rec ${STATIC_DIR}/full/\$(date +%Y-%m-%d_%H-%M-%S).cast"
+
+ZSHRC="$HOME/.zshrc"
 
 undo=false
-
 while [[ "$#" -gt 0 ]]; do
     case $1 in
         --undo) undo=true ;;
@@ -18,7 +30,7 @@ done
 
 if [[ "$undo" = true ]]; then
     echo "Undoing changes made by the script..."
-    sed -i '/# Setup asciinema recording/,/#fi/d' "$HOME/.zshrc"
+    sed -i '/# Setup asciinema recording/,/#fi/d' "$ZSHRC"
     echo "Changes undone. Please restart your shell."
     exit 0
 fi
@@ -34,35 +46,12 @@ if ! command -v asciinema &> /dev/null; then
     fi
 fi
 
-if [ ! -d "$PATRONUS_DIR" ]; then
-    mkdir -p "$PATRONUS_DIR"
-    echo "Created directory: $PATRONUS_DIR"
-fi
-
-if [ -d "$STATIC_SRC_DIR" ]; then
-    cp -r "$STATIC_SRC_DIR"/* "$PATRONUS_DIR"
-    echo "Copied static files from $STATIC_SRC_DIR to $PATRONUS_DIR"
-fi
-
-for subdir in "full" "redacted_full" "splits"; do
-    if [ ! -d "$PATRONUS_DIR/$subdir" ]; then
-        mkdir -p "$PATRONUS_DIR/$subdir"
-        echo "Created directory: $PATRONUS_DIR/$subdir"
-    fi
-done
-
-FULL_DIR="$PATRONUS_DIR/full"
-echo "Recording directory set at ${FULL_DIR}"
-
-ZSHRC="$HOME/.zshrc"
-RECORD_CMD="asciinema rec \$FULL_DIR/\$(date +%Y-%m-%d_%H-%M-%S).cast"
-
 if ! grep -q "ASC_REC_ACTIVE" "${ZSHRC}"; then
     echo "Adding asciinema setup to ${ZSHRC}"
     cat <<EOF >> "${ZSHRC}"
 
 # Setup asciinema recording
-export FULL_DIR=${FULL_DIR}
+export FULL_DIR=${STATIC_DIR}/full
 trap 'echo Shell exited, stopping recording.; asciinema stop' EXIT
 if [ -z "\$ASC_REC_ACTIVE" ]; then
     export ASC_REC_ACTIVE=true
