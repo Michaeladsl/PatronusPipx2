@@ -8,9 +8,13 @@ import re
 import pyte
 from tqdm import tqdm
 
-# Set the static folder path
 home_dir = os.path.expanduser("~")
-patronus_static_dir = os.path.join(home_dir, ".local", ".patronus", "static")
+patronus_base_dir = os.path.join(home_dir, ".local", ".patronus")
+patronus_static_dir = os.path.join(patronus_base_dir, "static")
+splits_dir = os.path.join(patronus_static_dir, 'splits')
+full_dir = os.path.join(patronus_base_dir, 'full')
+redacted_full_dir = os.path.join(patronus_base_dir, 'redacted_full')
+text_dir = os.path.join(patronus_static_dir, 'text')
 
 app = Flask(__name__, static_folder=patronus_static_dir)
 
@@ -27,14 +31,14 @@ def status():
     return jsonify({"status": processing_status})
 
 def get_cast_files():
-    splits_dir = os.path.join(patronus_static_dir, 'splits')
     files = [f for f in os.listdir(splits_dir) if f.endswith('.cast')]
     
     mappings_file = os.path.join(splits_dir, 'file_timestamp_mapping.json')
     timestamps = {}
-    with open(mappings_file, 'r') as f:
-        mappings = json.load(f)
-        timestamps = {file_path: timestamp for file_path, timestamp in mappings.items() if timestamp is not None}
+    if os.path.exists(mappings_file):
+        with open(mappings_file, 'r') as f:
+            mappings = json.load(f)
+            timestamps = {file_path: timestamp for file_path, timestamp in mappings.items() if timestamp is not None}
     
     if request.path.startswith('/command/'):
         sorted_files = sorted(files, key=lambda x: timestamps.get(os.path.join(splits_dir, x), ''))
@@ -51,14 +55,14 @@ def strip_ansi_sequences(file_path):
         return re.sub(r'\x1b\[[0-?]*[ -/]*[@-~]', '', content)
 
 def search_index(query):
-    text_dir = os.path.join(patronus_static_dir, 'text')
     results = []
-    for text_file in os.listdir(text_dir):
-        if text_file.endswith('.txt'):
-            with open(os.path.join(text_dir, text_file), 'r') as f:
-                content = f.read()
-                if query.lower() in content.lower():
-                    results.append(text_file.replace('.txt', ''))
+    if os.path.exists(text_dir):
+        for text_file in os.listdir(text_dir):
+            if text_file.endswith('.txt'):
+                with open(os.path.join(text_dir, text_file), 'r') as f:
+                    content = f.read()
+                    if query.lower() in content.lower():
+                        results.append(text_file.replace('.txt', ''))
     return results
 
 def get_disk_usage():
@@ -76,10 +80,10 @@ def get_disk_usage():
         return total_size / (1024 ** 3)
 
     recordings_size = (
-        get_directory_size(os.path.join(patronus_static_dir, "splits")) +
-        get_directory_size(os.path.join(patronus_static_dir, "redacted_full")) +
-        get_directory_size(os.path.join(patronus_static_dir, "full")) +
-        get_directory_size(os.path.join(patronus_static_dir, "text"))
+        get_directory_size(splits_dir) +
+        get_directory_size(redacted_full_dir) +
+        get_directory_size(full_dir) +
+        get_directory_size(text_dir)
     )
     return free_gb, recordings_size
 
@@ -107,7 +111,7 @@ def combine_cast_files(input_files, output_file, debug=False):
     header = None
 
     for file in tqdm(input_files, desc="Combining CAST Files"):
-        file_path = os.path.join(patronus_static_dir, 'splits', file)
+        file_path = os.path.join(splits_dir, file)
         with open(file_path, 'r') as f:
             lines = f.readlines()
             if not header:
@@ -143,7 +147,7 @@ def combine_cast_files(input_files, output_file, debug=False):
                 event_time = float(event[0]) + start_time_offset
                 combined_events.append(json.dumps([event_time, event[1], event[2]]))
 
-    output_path = os.path.join(patronus_static_dir, 'splits', output_file)
+    output_path = os.path.join(splits_dir, output_file)
     with open(output_path, 'w') as f:
         f.write('\n'.join(combined_events) + '\n')
 
@@ -181,7 +185,7 @@ def command_page(command):
     files_with_dates = []
 
     for file in command_files:
-        file_path = os.path.join(patronus_static_dir, 'splits', file)
+        file_path = os.path.join(splits_dir, file)
         timestamp = get_timestamp(file_path)
         date = timestamp.split()[0] if timestamp else None
         
@@ -194,11 +198,12 @@ def command_page(command):
     return render_template_string(COMMAND_TEMPLATE, command=command, command_files=files_with_dates, favorites=favorites)
 
 def get_timestamp(file_path):
-    mappings_file = os.path.join(patronus_static_dir, 'splits', 'file_timestamp_mapping.json')
+    mappings_file = os.path.join(splits_dir, 'file_timestamp_mapping.json')
     with open(mappings_file, 'r') as f:
         mappings = json.load(f)
         timestamp = mappings.get(file_path)
         return timestamp
+
 
 @app.route('/favorites')
 def favorites_page():
@@ -210,14 +215,14 @@ def favorites_page():
 def redact_text():
     data = request.json
     word = data['word']
-    file_to_redact = os.path.join(patronus_static_dir, 'splits', data['file'])
+    file_to_redact = os.path.join(splits_dir, data['file'])
     subprocess.run(['python3', 'redact.py', '-w', word, '-f', file_to_redact])
     return jsonify(success=True)
 
 @app.route('/delete', methods=['POST'])
 def delete_file():
     data = request.json
-    file_path = os.path.join(patronus_static_dir, 'splits', data['file'])
+    file_path = os.path.join(splits_dir, data['file'])
     try:
         os.remove(file_path)
         return jsonify(success=True)
@@ -229,8 +234,8 @@ def edit_file_name():
     data = request.get_json()
     old_file_name = data['old_file']
     new_file_name = data['new_file']
-    old_file_path = os.path.join(patronus_static_dir, 'splits', old_file_name)
-    new_file_path = os.path.join(patronus_static_dir, 'splits', new_file_name)
+    old_file_path = os.path.join(splits_dir, old_file_name)
+    new_file_path = os.path.join(splits_dir, new_file_name)
     try:
         os.rename(old_file_path, new_file_path)
         return jsonify(success=True)

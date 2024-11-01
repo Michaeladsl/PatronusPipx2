@@ -3,6 +3,9 @@
 GREEN='\033[92m'
 RESET='\033[0m'
 
+PATRONUS_DIR="$HOME/.local/.patronus"
+STATIC_SRC_DIR="$HOME/.local/share/pipx/venvs/patronus/static"
+
 undo=false
 
 while [[ "$#" -gt 0 ]]; do
@@ -31,9 +34,24 @@ if ! command -v asciinema &> /dev/null; then
     fi
 fi
 
-CURRENT_DIR=$(pwd)
-FULL_DIR="${CURRENT_DIR}/static/full"
-mkdir -p "${FULL_DIR}"
+if [ ! -d "$PATRONUS_DIR" ]; then
+    mkdir -p "$PATRONUS_DIR"
+    echo "Created directory: $PATRONUS_DIR"
+fi
+
+if [ -d "$STATIC_SRC_DIR" ]; then
+    cp -r "$STATIC_SRC_DIR"/* "$PATRONUS_DIR"
+    echo "Copied static files from $STATIC_SRC_DIR to $PATRONUS_DIR"
+fi
+
+for subdir in "full" "redacted_full" "splits"; do
+    if [ ! -d "$PATRONUS_DIR/$subdir" ]; then
+        mkdir -p "$PATRONUS_DIR/$subdir"
+        echo "Created directory: $PATRONUS_DIR/$subdir"
+    fi
+done
+
+FULL_DIR="$PATRONUS_DIR/full"
 echo "Recording directory set at ${FULL_DIR}"
 
 ZSHRC="$HOME/.zshrc"
