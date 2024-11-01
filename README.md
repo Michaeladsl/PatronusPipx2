@@ -6,7 +6,7 @@ Patronus was designed with penetration testers in mind! This dynamic tool captur
 
 Install with pipx
 ```
-pipx install git+https://github.com/Michaeladsl/PatronusPipx
+pipx install git+https://github.com/Michaeladsl/Patronusx
 ```
 
 
