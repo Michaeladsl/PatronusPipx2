@@ -1,7 +1,6 @@
 from setuptools import setup, find_packages
 import os
 
-# Helper function to gather all files within the static directory and subdirectories
 def gather_static_files():
     static_files = []
     for dirpath, _, filenames in os.walk('static'):
@@ -20,21 +19,21 @@ setup(
         'tqdm',
         'asciinema',
     ],
-    include_package_data=True,  # Uses MANIFEST.in to include data files
+    include_package_data=True, 
     entry_points={
         'console_scripts': [
-            'edit=edit:main',
-            'patronus=patronus:main',
-            'redact=redact:main',
-            'server=server:main',
-            'split=split:main',
+            'patronus=patronus:main',         
+            'patronus-edit=edit:main',         
+            'patronus-redact=redact:main',
+            'patronus-split=split:main',
+            'patronus-server=server:main',
         ],
     },
     package_data={
         '': ['configure.sh'],
     },
     data_files=[
-        ('', ['configure.sh']),  # Ensures configure.sh is at the root
-        ('static', gather_static_files()),  # Includes all files in the static directory and subdirectories
+        ('', ['configure.sh']),  
+        ('static', gather_static_files()),  
     ],
 )

@@ -1001,7 +1001,7 @@ COMMAND_TEMPLATE = '''
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({word: word, file: filename})
+                body: JSON.stringify({ word: word, file: filename })
             }).then(response => response.json())
             .then(data => {
                 if (data.success) {
@@ -1012,13 +1012,15 @@ COMMAND_TEMPLATE = '''
 
                     setTimeout(() => {
                         playerContainer.style.display = 'block';
-                        AsciinemaPlayer.create('/static/splits/' + filename + '?_=' + timestamp, playerContainer);
+                        // Update the path to reference the new directory structure
+                        AsciinemaPlayer.create('/.patronus/static/splits/' + filename + '?_=' + timestamp, playerContainer);
                     }, 1000);
                 }
             }).catch(error => {
                 console.error('Error:', error);
             });
         }
+
 
     
         function deleteFile(filename) {

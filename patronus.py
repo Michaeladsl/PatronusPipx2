@@ -3,6 +3,10 @@ import subprocess
 import os
 import sys
 import shutil
+from edit import main as edit_main
+from redact import main as redact_main
+from split import main as split_main
+from server import main as server_main
 
 PATRONUS_BASE_DIR = os.path.expanduser('~/.local/.patronus')
 
@@ -56,29 +60,11 @@ def setup_directories():
             os.makedirs(subdir_path)
             print(f"Created directory: {subdir_path}")
 
-    static_src_dir = os.path.expanduser('~/.local/share/pipx/venvs/patronus/static')
+    static_src_dir = os.path.join(sys.prefix, 'lib', 'python3.12', 'site-packages', 'static')
     static_dest_dir = os.path.join(PATRONUS_BASE_DIR, 'static')
-
-    if os.path.exists(static_src_dir):
-        if not os.path.exists(static_dest_dir):
-            os.makedirs(static_dest_dir)
-            print(f"Created destination static directory at {static_dest_dir}")
-
-        for item in os.listdir(static_src_dir):
-            src_item_path = os.path.join(static_src_dir, item)
-            dest_item_path = os.path.join(static_dest_dir, item)
-            if os.path.isdir(src_item_path):
-                shutil.copytree(src_item_path, dest_item_path, dirs_exist_ok=True)
-            else:
-                shutil.copy2(src_item_path, dest_item_path)
-            print(f"Copied {src_item_path} to {dest_item_path}")
-
-        print(f"Copied all static files from {static_src_dir} to {static_dest_dir}")
-    else:
-        print(f"Static source directory not found at {static_src_dir}")
-
-
-
+    if os.path.exists(static_src_dir) and not os.path.exists(static_dest_dir):
+        shutil.copytree(static_src_dir, static_dest_dir)
+        print(f"Copied static files from {static_src_dir} to {static_dest_dir}")
 
 def remove_gitkeep_files():
     for subdir in ['redacted_full', 'full', 'splits']:
@@ -99,30 +85,42 @@ def nuke_directories():
         print(f"Nuked all contents from {full_path}")
 
 def main():
-    parser = argparse.ArgumentParser(description="Patronus: A central command script for running multiple utility scripts.")
-    parser.add_argument('mode', nargs='?', choices=['on', 'off'], help='Mode for running configuration.sh. Use "on" to run configuration.sh or "off" to run configuration.sh --undo.')
+    parser = argparse.ArgumentParser(description="Patronus: A central command script for managing utilities.")
+    parser.add_argument('mode', nargs='?', choices=['on', 'off'], help='Mode for running configuration.sh.')
     parser.add_argument('--nuke', action='store_true', help='Erase all contents from the static directories')
-    args = parser.parse_args()
 
-    setup_directories()
+    args, unknown = parser.parse_known_args()
 
     if args.mode:
         if args.mode == 'on':
             run_script('configure.sh', [])
+            return
         elif args.mode == 'off':
             run_script('configure.sh', ['--undo'])
-        return
+            return
 
     if args.nuke:
         nuke_directories()
-        return 
+        return
 
-    remove_gitkeep_files()
-    start_flask_server_in_tmux()
-    print("Server Started: http://127.0.0.1:8005")
-    scripts_to_run = ['redact.py', 'split.py', 'edit.py']
-    for script in scripts_to_run:
-        run_script(script, [])
+    if len(unknown) < 1:
+        print("Usage: patronus <command> [options]")
+        sys.exit(1)
+
+    command = unknown[0]
+    sys.argv = [sys.argv[0]] + unknown  
+    if command == "edit":
+        edit_main()
+    elif command == "redact":
+        redact_main()
+    elif command == "split":
+        split_main()
+    elif command == "server":
+        server_main()
+    else:
+        print(f"Unknown command: {command}")
+        print("Available commands: on, off, --nuke, edit, redact, split, server")
+        sys.exit(1)
 
 if __name__ == "__main__":
     main()
