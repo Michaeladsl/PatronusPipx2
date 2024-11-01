@@ -13,10 +13,15 @@ def make_script_executable(script_path):
 def find_script_path(script_name):
     """Finds the path of the script within the pipx environment."""
     venv_root = sys.prefix
-    script_path = os.path.join(venv_root, 'lib', 'python3.12', 'site-packages', script_name)
-    if not os.path.exists(script_path):
-        raise FileNotFoundError(f"Script not found at {script_path}")
-    return script_path
+    script_path_main = os.path.join(venv_root, '..', script_name)  
+    script_path_site = os.path.join(venv_root, 'lib', 'python3.12', 'site-packages', script_name)
+
+    if os.path.exists(script_path_main):
+        return script_path_main
+    elif os.path.exists(script_path_site):
+        return script_path_site
+    else:
+        raise FileNotFoundError(f"Script not found in {script_path_main} or {script_path_site}")
 
 def start_flask_server_in_tmux():
     flask_script_path = find_script_path('server.py')
@@ -37,7 +42,7 @@ def setup_directories():
         print(f"Created directory: {PATRONUS_BASE_DIR}")
 
     for subdir in ['full', 'redacted_full', 'splits']:
-        subdir_path = os.path.join(PATRONUS_BASE_DIR, subdir)
+        subdir_path = os.path.join(PATRONUS_BASE_DIR, 'static', subdir)
         if not os.path.exists(subdir_path):
             os.makedirs(subdir_path)
             print(f"Created directory: {subdir_path}")
@@ -50,14 +55,14 @@ def setup_directories():
 
 def remove_gitkeep_files():
     for subdir in ['redacted_full', 'full', 'splits']:
-        gitkeep_path = os.path.join(PATRONUS_BASE_DIR, subdir, '.gitkeep')
+        gitkeep_path = os.path.join(PATRONUS_BASE_DIR, 'static', subdir, '.gitkeep')
         if os.path.exists(gitkeep_path):
             os.remove(gitkeep_path)
             print(f"Removed .gitkeep from {gitkeep_path}")
 
 def nuke_directories():
     for subdir in ['full', 'redacted_full', 'splits']:
-        full_path = os.path.join(PATRONUS_BASE_DIR, subdir)
+        full_path = os.path.join(PATRONUS_BASE_DIR, 'static', subdir)
         for item in os.listdir(full_path):
             item_path = os.path.join(full_path, item)
             if os.path.isfile(item_path) or os.path.islink(item_path):
