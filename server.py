@@ -218,11 +218,12 @@ def redact_text():
     word = data['word']
     file_to_redact = os.path.join(splits_dir, data['file'])
 
-    redact_script_path = os.path.join(sys.prefix, 'lib', 'python3.12', 'site-packages', 'redact.py')
+    redact_script_path = os.path.expanduser('~/.local/share/pipx/venvs/patronus/lib/python3.12/site-packages/redact.py')
 
-    subprocess.run(['python3', redact_script_path, '-w', word, '-f', file_to_redact])
+    subprocess.run(['python3', redact_script_path, '-w', word, '-f', file_to_redact], check=True)
     
     return jsonify(success=True)
+
 
 @app.route('/delete', methods=['POST'])
 def delete_file():
