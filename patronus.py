@@ -13,9 +13,9 @@ def make_script_executable(script_path):
 def find_script_path(script_name):
     """Finds the path of the script within the pipx environment."""
     venv_root = sys.prefix
-    script_path_main = os.path.join(venv_root, '..', script_name) 
-    script_path_venv_root = os.path.join(venv_root, script_name)  
-    script_path_site = os.path.join(venv_root, 'lib', 'python3.12', 'site-packages', script_name)  
+    script_path_main = os.path.join(venv_root, '..', script_name)
+    script_path_venv_root = os.path.join(venv_root, script_name)
+    script_path_site = os.path.join(venv_root, 'lib', 'python3.12', 'site-packages', script_name)
 
     if os.path.exists(script_path_main):
         return script_path_main
@@ -27,6 +27,12 @@ def find_script_path(script_name):
         raise FileNotFoundError(f"Script not found in {script_path_main}, {script_path_venv_root}, or {script_path_site}")
 
 def start_flask_server_in_tmux():
+    check_session_command = "tmux has-session -t flask_server 2>/dev/null"
+    result = subprocess.run(check_session_command, shell=True)
+    if result.returncode == 0:
+        print("flask_server session active")
+        return 
+
     flask_script_path = find_script_path('server.py')
     tmux_command = f"tmux new-session -d -s flask_server 'python3 {flask_script_path}'"
     subprocess.run(tmux_command, shell=True, check=True)
