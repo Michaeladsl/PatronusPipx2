@@ -5,6 +5,7 @@ RESET='\033[0m'
 
 BASE_DIR="$HOME/.local/.patronus"
 STATIC_DIR="${BASE_DIR}/static"
+PIPX_STATIC_DIR="$HOME/.local/share/pipx/venvs/patronus/static"
 
 mkdir -p "${STATIC_DIR}/full"
 mkdir -p "${STATIC_DIR}/redacted_full"
@@ -15,8 +16,15 @@ echo "${STATIC_DIR}/full"
 echo "${STATIC_DIR}/redacted_full"
 echo "${STATIC_DIR}/splits"
 
-RECORD_CMD="asciinema rec ${STATIC_DIR}/full/\$(date +%Y-%m-%d_%H-%M-%S).cast"
+if [ -d "${PIPX_STATIC_DIR}" ]; then
+    echo "Moving static files from ${PIPX_STATIC_DIR} to ${STATIC_DIR}..."
+    cp -r "${PIPX_STATIC_DIR}/." "${STATIC_DIR}/"
+    echo -e "${GREEN}Static files moved successfully.${RESET}"
+else
+    echo -e "${GREEN}No static files found in ${PIPX_STATIC_DIR}. Skipping move.${RESET}"
+fi
 
+RECORD_CMD="asciinema rec ${STATIC_DIR}/full/\$(date +%Y-%m-%d_%H-%M-%S).cast"
 ZSHRC="$HOME/.zshrc"
 
 undo=false
