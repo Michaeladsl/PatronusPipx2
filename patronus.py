@@ -4,6 +4,12 @@ import os
 import sys
 import shutil
 
+# Import main functions from subcommand scripts
+from edit import main as edit_main
+from redact import main as redact_main
+from split import main as split_main
+from server import main as server_main
+
 PATRONUS_BASE_DIR = os.path.expanduser('~/.local/.patronus')
 
 def make_script_executable(script_path):
@@ -11,7 +17,6 @@ def make_script_executable(script_path):
         os.chmod(script_path, os.stat(script_path).st_mode | 0o111)
 
 def find_script_path(script_name):
-    """Finds the path of the script within the pipx environment."""
     venv_root = sys.prefix
     script_path_main = os.path.join(venv_root, '..', script_name)
     script_path_venv_root = os.path.join(venv_root, script_name)
@@ -27,25 +32,20 @@ def find_script_path(script_name):
         raise FileNotFoundError(f"Script not found in {script_path_main}, {script_path_venv_root}, or {script_path_site}")
 
 def start_flask_server_in_tmux():
-    check_session_command = "tmux has-session -t flask_server 2>/dev/null"
-    result = subprocess.run(check_session_command, shell=True)
-    if result.returncode == 0:
-        print("flask_server session active")
-        return 
-
     flask_script_path = find_script_path('server.py')
     tmux_command = f"tmux new-session -d -s flask_server 'python3 {flask_script_path}'"
-    subprocess.run(tmux_command, shell=True, check=True)
+    try:
+        subprocess.run(tmux_command, shell=True, check=True)
+    except subprocess.CalledProcessError:
+        print("flask_server session active")
 
 def run_script(script_name, args):
-    """Runs a script from its original location within the pipx environment."""
     full_script_path = find_script_path(script_name)
     make_script_executable(full_script_path)
     command = [full_script_path] + args if script_name.endswith('.sh') else ['python3', full_script_path] + args
     subprocess.run(command, check=True)
 
 def setup_directories():
-    """Sets up the main directory structure in the user's home directory."""
     if not os.path.exists(PATRONUS_BASE_DIR):
         os.makedirs(PATRONUS_BASE_DIR)
         print(f"Created directory: {PATRONUS_BASE_DIR}")
@@ -59,7 +59,7 @@ def setup_directories():
     static_src_dir = os.path.join(sys.prefix, 'lib', 'python3.12', 'site-packages', 'static')
     static_dest_dir = os.path.join(PATRONUS_BASE_DIR, 'static')
     if os.path.exists(static_src_dir) and not os.path.exists(static_dest_dir):
-        shutil.copytree(static_src_dir, static_dest_dir)
+        shutil.copytree(static_src_dir, static_dest_dir, dirs_exist_ok=True)
         print(f"Copied static files from {static_src_dir} to {static_dest_dir}")
 
 def remove_gitkeep_files():
@@ -82,29 +82,36 @@ def nuke_directories():
 
 def main():
     parser = argparse.ArgumentParser(description="Patronus: A central command script for running multiple utility scripts.")
-    parser.add_argument('mode', nargs='?', choices=['on', 'off'], help='Mode for running configuration.sh. Use "on" to run configuration.sh or "off" to run configuration.sh --undo.')
+    parser.add_argument('command', nargs='?', help='Subcommand to run (edit, redact, split, server, on, off, etc.)')
     parser.add_argument('--nuke', action='store_true', help='Erase all contents from the static directories')
     args = parser.parse_args()
 
     setup_directories()
 
-    if args.mode:
-        if args.mode == 'on':
-            run_script('configure.sh', [])
-        elif args.mode == 'off':
-            run_script('configure.sh', ['--undo'])
-        return
-
-    if args.nuke:
+    if args.command == "on":
+        run_script('configure.sh', [])
+    elif args.command == "off":
+        run_script('configure.sh', ['--undo'])
+    elif args.command == "edit":
+        edit_main()
+    elif args.command == "redact":
+        redact_main()
+    elif args.command == "split":
+        split_main()
+    elif args.command == "server":
+        server_main()
+    elif args.nuke:
         nuke_directories()
-        return 
-
-    remove_gitkeep_files()
-    start_flask_server_in_tmux()
-    print("Server Started: http://127.0.0.1:8005")
-    scripts_to_run = ['redact.py', 'split.py', 'edit.py']
-    for script in scripts_to_run:
-        run_script(script, [])
+    else:
+        if args.command:
+            print(f"Unknown command: {args.command}")
+        else:
+            remove_gitkeep_files()
+            start_flask_server_in_tmux()
+            print("Server Started: http://127.0.0.1:8005")
+            scripts_to_run = ['redact.py', 'split.py', 'edit.py']
+            for script in scripts_to_run:
+                run_script(script, [])
 
 if __name__ == "__main__":
     main()

@@ -298,7 +298,7 @@ def quantize_action(static_dir: str, debug: bool):
             except Exception as e:
                 print(f"Unexpected error processing file {input_path}: {e}")
 
-if __name__ == "__main__":
+def main():
     parser = argparse.ArgumentParser(description='Quantize Asciinema Casts in a directory.')
     parser.add_argument('--debug', action='store_true', help='Enable debug output')
     args = parser.parse_args()
@@ -312,3 +312,6 @@ if __name__ == "__main__":
         print(f"Error: {e}")
     except Exception as e:
         print(f"Unexpected error: {e}")
+
+if __name__ == "__main__":
+    main()

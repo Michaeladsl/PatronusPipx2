@@ -295,11 +295,21 @@ def generate_output_filename(command, output_dir):
 def is_trivial_command(command, trivial_commands):
     return command.split('_')[0] in trivial_commands
 
-if __name__ == "__main__":
+def main():
+    parser = argparse.ArgumentParser(description='Split and process Asciinema cast files.')
+    parser.add_argument('--debug', action='store_true', help='Enable debug output')
+    args = parser.parse_args()
+
     home_dir = os.path.expanduser("~")
     static_dir = os.path.join(home_dir, ".local", ".patronus", "static")
     input_dir = os.path.join(static_dir, 'redacted_full')
     output_dir = os.path.join(static_dir, 'splits')
 
-    split_file(input_dir, output_dir, args.debug)
-    create_text_versions(static_dir)
+    try:
+        split_file(input_dir, output_dir, args.debug)
+        create_text_versions(static_dir)
+    except Exception as e:
+        print(f"An error occurred: {e}")
+
+if __name__ == "__main__":
+    main()

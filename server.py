@@ -1054,5 +1054,8 @@ COMMAND_TEMPLATE = '''
 </body>
 </html>
 '''
-if __name__ == '__main__':
+def main():
     app.run(host='127.0.0.1', port=8005, debug=False)
+
+if __name__ == '__main__':
+    main()
