@@ -216,7 +216,11 @@ def redact_text():
     data = request.json
     word = data['word']
     file_to_redact = os.path.join(splits_dir, data['file'])
-    subprocess.run(['python3', 'redact.py', '-w', word, '-f', file_to_redact])
+
+    redact_script_path = os.path.join(sys.prefix, 'lib', 'python3.12', 'site-packages', 'redact.py')
+
+    subprocess.run(['python3', redact_script_path, '-w', word, '-f', file_to_redact])
+    
     return jsonify(success=True)
 
 @app.route('/delete', methods=['POST'])
