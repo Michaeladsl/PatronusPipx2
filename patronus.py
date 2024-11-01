@@ -56,11 +56,18 @@ def setup_directories():
             os.makedirs(subdir_path)
             print(f"Created directory: {subdir_path}")
 
-    static_src_dir = os.path.join(sys.prefix, 'lib', 'python3.12', 'site-packages', 'static')
+    static_src_dir = os.path.join(sys.prefix, 'static')
     static_dest_dir = os.path.join(PATRONUS_BASE_DIR, 'static')
-    if os.path.exists(static_src_dir) and not os.path.exists(static_dest_dir):
-        shutil.copytree(static_src_dir, static_dest_dir)
-        print(f"Copied static files from {static_src_dir} to {static_dest_dir}")
+
+    if os.path.exists(static_src_dir):
+        if not os.path.exists(static_dest_dir):
+            shutil.copytree(static_src_dir, static_dest_dir)
+            print(f"Copied static files from {static_src_dir} to {static_dest_dir}")
+        else:
+            print(f"Static directory already exists at {static_dest_dir}")
+    else:
+        print(f"Static source directory not found at {static_src_dir}")
+
 
 def remove_gitkeep_files():
     for subdir in ['redacted_full', 'full', 'splits']:
